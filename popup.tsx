@@ -50,14 +50,57 @@ const NumberInput = ({
   </div>
 )
 
+// --- Color Math Helpers (Pure JS for performance) ---
+const parseToRgb = (color: string) => {
+  if (color.startsWith("hsl")) {
+    const [h, s, l] = color.match(/\d+/g)!.map(Number)
+    const s1 = s / 100, l1 = l / 100
+    const k = (n: number) => (n + h / 30) % 12
+    const a = s1 * Math.min(l1, 1 - l1)
+    const f = (n: number) => l1 - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)))
+    return { r: Math.round(255 * f(0)), g: Math.round(255 * f(8)), b: Math.round(255 * f(4)) }
+  }
+  if (color.startsWith("#")) {
+    const hex = color.length === 4 ? "#" + color[1] + color[1] + color[2] + color[2] + color[3] + color[3] : color
+    return {
+      r: parseInt(hex.slice(1, 3), 16),
+      g: parseInt(hex.slice(3, 5), 16),
+      b: parseInt(hex.slice(5, 7), 16)
+    }
+  }
+  return { r: 239, g: 68, b: 68 } // Default red
+}
+
+const rgbToHsv = ({ r, g, b }: { r: number, g: number, b: number }) => {
+  const r1 = r / 255, g1 = g / 255, b1 = b / 255
+  const max = Math.max(r1, g1, b1), min = Math.min(r1, g1, b1)
+  const d = max - min
+  let h = 0, s = max === 0 ? 0 : d / max, v = max
+  if (max !== min) {
+    switch (max) {
+      case r1: h = (g1 - b1) / d + (g1 < b1 ? 6 : 0); break
+      case g1: h = (b1 - r1) / d + 2; break
+      case b1: h = (r1 - g1) / d + 4; break
+    }
+    h /= 6
+  }
+  return { h: h * 360, s: s * 100, v: v * 100 }
+}
+
+const hsvToHex = (h: number, s: number, v: number) => {
+  const s1 = s / 100, v1 = v / 100
+  const l1 = v1 * (1 - s1 / 2)
+  const sl = (l1 === 0 || l1 === 1) ? 0 : (v1 - l1) / Math.min(l1, 1 - l1)
+  const h1 = h, s2 = Math.round(sl * 100), l2 = Math.round(l1 * 100)
+  return `hsl(${Math.round(h1)}, ${s2}%, ${l2}%)`
+}
+
 function IndexPopup() {
   const [config, setConfig] = useState<GridConfig>(DEFAULT_CONFIG)
 
   useEffect(() => {
     chrome.storage.local.get(["gridConfig"], (result) => {
-      if (result.gridConfig) {
-        setConfig(result.gridConfig)
-      }
+      if (result.gridConfig) setConfig(result.gridConfig)
     })
   }, [])
 
@@ -69,8 +112,8 @@ function IndexPopup() {
     })
   }
 
-  // Helper to ensure the picker only shows if it's a valid 6-char hex
-  const isValidPickerHex = (str: string) => /^#[0-9A-Fa-f]{6}$/.test(str)
+  const hsv = rgbToHsv(parseToRgb(config.color))
+  const PRESET_COLORS = ["#ef4444", "#3b82f6", "#10b981", "#f59e0b", "#6366f1", "#000000"]
 
   return (
     <div className="p-4 w-72 bg-white flex flex-col gap-5 font-sans shadow-xl">
@@ -138,34 +181,62 @@ function IndexPopup() {
           />
         </div>
 
-        {/* Color Input */}
-        <div className="flex flex-col gap-2">
+        {/* Intuitive 2D Color Picker */}
+        <div className="flex flex-col gap-3">
           <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Color</label>
-          <div className="flex items-center gap-2 p-1.5 bg-slate-50 rounded-lg border border-slate-100">
-            <div className="relative w-8 h-8 rounded-md overflow-hidden border border-slate-200 shadow-sm shrink-0">
-              <input 
-                type="color"
-                value={isValidPickerHex(config.color) ? config.color : "#ef4444"}
-                onChange={(e) => updateConfig({ color: e.target.value })}
-                className="absolute inset-[-4px] w-[calc(100%+8px)] h-[calc(100%+8px)] cursor-pointer border-0 p-0 m-0"
+          
+          <div className="flex flex-col gap-3">
+            {/* 2D Saturation/Brightness Square */}
+            <div 
+              className="relative w-full h-32 rounded-lg cursor-crosshair overflow-hidden select-none"
+              style={{ backgroundColor: `hsl(${hsv.h}, 100%, 50%)` }}
+              onMouseDown={(e) => {
+                const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+                const update = (ev: MouseEvent | React.MouseEvent) => {
+                  const s = Math.min(100, Math.max(0, ((ev.clientX - rect.left) / rect.width) * 100))
+                  const v = Math.min(100, Math.max(0, (1 - (ev.clientY - rect.top) / rect.height) * 100))
+                  updateConfig({ color: hsvToHex(hsv.h, s, v) })
+                }
+                
+                update(e)
+                
+                const move = (ev: MouseEvent) => update(ev)
+                const up = () => {
+                  window.removeEventListener("mousemove", move)
+                  window.removeEventListener("mouseup", up)
+                }
+                
+                window.addEventListener("mousemove", move)
+                window.addEventListener("mouseup", up)
+              }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-white to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
+              <div 
+                className="absolute w-3 h-3 border-2 border-white rounded-full shadow-md -translate-x-1/2 translate-y-1/2 pointer-events-none"
+                style={{ left: `${hsv.s}%`, bottom: `${hsv.v}%` }}
               />
             </div>
+
+            {/* Hue Slider */}
+            <input 
+              type="range" min="0" max="360" value={hsv.h}
+              onChange={(e) => updateConfig({ color: hsvToHex(parseInt(e.target.value), hsv.s, hsv.v) })}
+              className="w-full h-3 rounded-lg appearance-none cursor-pointer"
+              style={{ background: 'linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)' }}
+            />
+          </div>
+
+          <div className="flex items-center gap-2 p-1.5 bg-slate-50 rounded-lg border border-slate-100">
+            <div className="w-8 h-8 rounded-md border border-slate-200 shadow-sm shrink-0" style={{ backgroundColor: config.color }} />
             <input 
               type="text"
               value={config.color}
               onChange={(e) => updateConfig({ color: e.target.value })}
-              placeholder="hex, hsl, oklch..."
-              className="w-full bg-transparent text-xs font-mono font-bold text-slate-700 outline-none p-1 placeholder:text-slate-300"
+              className="w-full bg-transparent text-xs font-mono font-bold text-slate-700 outline-none p-1"
             />
           </div>
         </div>
-      </div>
-
-      <div className="pt-2">
-        <div 
-          className="h-1 rounded-full opacity-30 transition-all" 
-          style={{ backgroundColor: config.color }} 
-        />
       </div>
     </div>
   )

@@ -26,8 +26,8 @@ const GridOverlay = () => {
     })
 
     // 2. Listen for Storage Changes
-    const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }) => {
-      if (changes.gridConfig) {
+    const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }, areaName: string) => {
+      if (areaName === "local" && changes.gridConfig) {
         setGridConfig(changes.gridConfig.newValue)
       }
     }
