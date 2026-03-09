@@ -41,29 +41,22 @@ const GridOverlay = () => {
   const color = gridConfig.color || "#ef4444"
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-[2147483647]">
+    <div className="fixed inset-0 pointer-events-none z-[100]">
       <div 
+        className="grid h-screen w-screen box-border"
         style={{
-          display: 'grid',
-          height: '100vh',
-          width: '100vw',
           gridTemplateColumns: `repeat(${gridConfig.columns}, minmax(0, 1fr))`,
-          gap: `${gridConfig.gutter}px`,
-          paddingLeft: `${gridConfig.margin}px`,
-          paddingRight: `${gridConfig.margin}px`,
-          boxSizing: 'border-box'
+          columnGap: `${gridConfig.gutter}px`,
+          paddingInline: `${gridConfig.margin}px`
         }}
       >
         {Array.from({ length: gridConfig.columns }).map((_, i) => (
           <div 
             key={i} 
+            className="h-full box-border border-x opacity-15"
             style={{
-              height: '100%',
               backgroundColor: color,
-              opacity: 0.15,
-              borderLeft: `1px solid ${color}`,
-              borderRight: `1px solid ${color}`,
-              boxSizing: 'border-box'
+              borderColor: color
             }}
           />
         ))}

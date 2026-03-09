@@ -8,7 +8,7 @@ const NumberInput = ({
   value, 
   onChange, 
   min = 0, 
-  max = 1000 
+  max = 200 
 }: { 
   label: string, 
   value: number, 
@@ -17,15 +17,8 @@ const NumberInput = ({
   max?: number
 }) => (
   <div className="flex flex-col gap-1.5 flex-1">
-    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{label}</label>
-    <div className="flex items-center">
-      <button 
-        type="button"
-        onClick={() => onChange(Math.max(min, value - 1))}
-        className="px-2 py-1.5 bg-white border border-slate-200 rounded-l-md hover:bg-slate-50 text-slate-500 transition-colors cursor-pointer select-none"
-      >
-        -
-      </button>
+    <div className="flex items-center justify-between">
+      <label className="text-[10px] font-semibold text-zinc-500 tracking-wide">{label}</label>
       <input 
         type="number"
         value={value}
@@ -37,15 +30,18 @@ const NumberInput = ({
             onChange(0)
           }
         }}
-        className="w-full text-center py-1.5 text-xs border-y border-slate-200 outline-none focus:bg-blue-50/30 transition-colors font-medium text-slate-700 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        className="w-10 text-right py-0.5 px-1 text-[11px] font-medium text-zinc-800 bg-transparent border-b border-zinc-200 focus:border-zinc-500 outline-none transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
       />
-      <button 
-        type="button"
-        onClick={() => onChange(Math.min(max, value + 1))}
-        className="px-2 py-1.5 bg-white border border-slate-200 rounded-r-md hover:bg-slate-50 text-slate-500 transition-colors cursor-pointer select-none"
-      >
-        +
-      </button>
+    </div>
+    <div className="pt-1">
+      <input 
+        type="range"
+        min={min}
+        max={max}
+        value={value}
+        onChange={(e) => onChange(parseInt(e.target.value))}
+        className="w-full h-1 bg-zinc-200 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-[0_0_0_1px_rgba(0,0,0,0.1),0_2px_4px_rgba(0,0,0,0.1)] hover:[&::-webkit-slider-thumb]:shadow-[0_0_0_1px_rgba(0,0,0,0.15),0_3px_6px_rgba(0,0,0,0.15)] transition-shadow"
+      />
     </div>
   </div>
 )
@@ -113,16 +109,19 @@ function IndexPopup() {
   }
 
   const hsv = rgbToHsv(parseToRgb(config.color))
-  const PRESET_COLORS = ["#ef4444", "#3b82f6", "#10b981", "#f59e0b", "#6366f1", "#000000"]
 
   return (
-    <div className="p-4 w-72 bg-white flex flex-col gap-5 font-sans shadow-xl">
-      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-        <div>
-          <h1 className="text-lg font-extrabold text-slate-900 tracking-tight leading-none mb-1">Gridly</h1>
-          <div className="flex items-center gap-1.5">
-            <div className={`w-1.5 h-1.5 rounded-full ${config.isEnabled ? 'bg-green-500 animate-pulse' : 'bg-slate-300'}`} />
-            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">{config.isEnabled ? 'Grid Active' : 'Grid Hidden'}</p>
+    <div className="p-4 w-[280px] bg-white flex flex-col gap-4 font-sans shadow-2xl selection:bg-zinc-200">
+      <div className="flex items-center justify-between border-b border-zinc-100 pb-3 mb-1">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 bg-zinc-900 rounded-lg flex items-center justify-center shadow-sm">
+             <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+             </svg>
+          </div>
+          <div>
+            <h1 className="text-[14px] font-bold text-zinc-900 tracking-tight leading-none">Gridly</h1>
+            <p className="text-[10px] text-zinc-400 font-medium tracking-wide mt-0.5">{config.isEnabled ? 'Active' : 'Inactive'}</p>
           </div>
         </div>
         <label className="relative inline-flex items-center cursor-pointer">
@@ -132,63 +131,85 @@ function IndexPopup() {
             checked={config.isEnabled}
             onChange={(e) => updateConfig({ isEnabled: e.target.checked })}
           />
-          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 shadow-inner"></div>
+          <div className="w-9 h-5 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-zinc-800"></div>
         </label>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-5">
         {/* Columns */}
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Columns</label>
-            <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">{config.columns}</span>
+            <label className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">Columns</label>
+            <input 
+              type="number"
+              value={config.columns}
+              onChange={(e) => {
+                const val = parseInt(e.target.value)
+                if (!isNaN(val)) {
+                  updateConfig({ columns: Math.min(64, Math.max(1, val)) })
+                } else if (e.target.value === "") {
+                  updateConfig({ columns: 1 })
+                }
+              }}
+              className="w-10 text-right py-0.5 px-1 text-[11px] font-medium text-zinc-800 bg-transparent border-b border-zinc-200 focus:border-zinc-500 outline-none transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
           </div>
-          <div className="flex gap-1 overflow-x-auto pb-1 no-scrollbar">
+          <div className="flex bg-zinc-100 p-0.5 rounded-lg overflow-hidden border border-zinc-200/50">
             {QUICK_COLUMNS.map((num) => (
               <button
                 key={num}
                 onClick={() => updateConfig({ columns: num })}
-                className={`text-[10px] px-2.5 py-1.5 font-bold border rounded-md transition-all flex-shrink-0 ${
+                className={`flex-1 text-[11px] py-1 font-semibold rounded-md transition-all ${
                   config.columns === num
-                    ? "bg-slate-900 text-white border-slate-900 shadow-md transform scale-105"
-                    : "bg-white text-slate-500 border-slate-200 hover:border-slate-400"
+                    ? "bg-white text-zinc-900 shadow-sm"
+                    : "text-zinc-500 hover:text-zinc-700"
                 }`}>
                 {num}
               </button>
             ))}
           </div>
-          <input 
-            type="range"
-            min="1"
-            max="64"
-            value={config.columns}
-            onChange={(e) => updateConfig({ columns: parseInt(e.target.value) })}
-            className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-blue-600"
-          />
+          <div className="pt-1">
+             <input 
+              type="range"
+              min="1"
+              max="64"
+              value={config.columns}
+              onChange={(e) => updateConfig({ columns: parseInt(e.target.value) })}
+              className="w-full h-1 bg-zinc-200 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-[0_0_0_1px_rgba(0,0,0,0.1),0_2px_4px_rgba(0,0,0,0.1)] hover:[&::-webkit-slider-thumb]:shadow-[0_0_0_1px_rgba(0,0,0,0.15),0_3px_6px_rgba(0,0,0,0.15)] transition-shadow"
+            />
+          </div>
         </div>
 
         {/* Gutter & Margin */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-5">
           <NumberInput 
-            label="Gutter (px)" 
+            label="Gutter" 
             value={config.gutter} 
             onChange={(val) => updateConfig({ gutter: val })} 
           />
           <NumberInput 
-            label="Margin (px)" 
+            label="Margin" 
             value={config.margin} 
             onChange={(val) => updateConfig({ margin: val })} 
           />
         </div>
 
         {/* Intuitive 2D Color Picker */}
-        <div className="flex flex-col gap-3">
-          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Color</label>
+        <div className="flex flex-col gap-2 pt-1 border-t border-zinc-100">
+          <div className="flex items-center justify-between pt-2">
+            <label className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">Color</label>
+            <button
+              onClick={() => updateConfig({ ...DEFAULT_CONFIG, isEnabled: config.isEnabled })}
+              className="text-[10px] font-medium text-zinc-400 hover:text-zinc-700 transition-colors cursor-pointer"
+            >
+              Reset to Default
+            </button>
+          </div>
           
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2.5">
             {/* 2D Saturation/Brightness Square */}
             <div 
-              className="relative w-full h-32 rounded-lg cursor-crosshair overflow-hidden select-none"
+              className="relative w-full h-28 rounded-md cursor-crosshair overflow-hidden select-none shadow-[inset_0_0_0_1px_rgba(0,0,0,0.05)]"
               style={{ backgroundColor: `hsl(${hsv.h}, 100%, 50%)` }}
               onMouseDown={(e) => {
                 const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
@@ -213,7 +234,7 @@ function IndexPopup() {
               <div className="absolute inset-0 bg-gradient-to-r from-white to-transparent" />
               <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
               <div 
-                className="absolute w-3 h-3 border-2 border-white rounded-full shadow-md -translate-x-1/2 translate-y-1/2 pointer-events-none"
+                className="absolute w-3.5 h-3.5 border-[2.5px] border-white rounded-full shadow-[0_1px_3px_rgba(0,0,0,0.3)] -translate-x-1/2 translate-y-1/2 pointer-events-none"
                 style={{ left: `${hsv.s}%`, bottom: `${hsv.v}%` }}
               />
             </div>
@@ -222,18 +243,18 @@ function IndexPopup() {
             <input 
               type="range" min="0" max="360" value={hsv.h}
               onChange={(e) => updateConfig({ color: hsvToHex(parseInt(e.target.value), hsv.s, hsv.v) })}
-              className="w-full h-3 rounded-lg appearance-none cursor-pointer"
+              className="w-full h-2 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-[0_0_0_1px_rgba(0,0,0,0.1),0_2px_4px_rgba(0,0,0,0.2)]"
               style={{ background: 'linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)' }}
             />
           </div>
 
-          <div className="flex items-center gap-2 p-1.5 bg-slate-50 rounded-lg border border-slate-100">
-            <div className="w-8 h-8 rounded-md border border-slate-200 shadow-sm shrink-0" style={{ backgroundColor: config.color }} />
+          <div className="flex items-center gap-2 mt-1">
+            <div className="w-6 h-6 rounded-md shadow-[inset_0_0_0_1px_rgba(0,0,0,0.15)] shrink-0" style={{ backgroundColor: config.color }} />
             <input 
               type="text"
               value={config.color}
               onChange={(e) => updateConfig({ color: e.target.value })}
-              className="w-full bg-transparent text-xs font-mono font-bold text-slate-700 outline-none p-1"
+              className="w-full bg-zinc-50 border border-zinc-200 text-[11px] font-mono font-medium text-zinc-700 outline-none px-2 py-1.5 rounded-md focus:border-zinc-400 focus:bg-white transition-colors uppercase"
             />
           </div>
         </div>

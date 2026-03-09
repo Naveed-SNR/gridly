@@ -2,7 +2,7 @@
   "name": "gridly",
   "displayName": "Gridly",
   "version": "0.0.1",
-  "description": "A ligtweight design tool for overlaying customizable grids onto any websssite",
+  "description": "A ligtweight design tool for overlaying customizable grids onto any website",
   "author": "Naveed SNR ",
   "scripts": {
     "dev": "plasmo dev",
