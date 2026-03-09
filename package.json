@@ -2,11 +2,13 @@
   "name": "gridly",
   "displayName": "Gridly",
   "version": "0.0.1",
-  "description": "A ligtweight design tool for overlaying customizable grids onto any website",
+  "description": "A lightweight design tool for overlaying customizable grids onto any website",
   "author": "Naveed SNR ",
   "scripts": {
     "dev": "plasmo dev",
-    "build": "plasmo build",
+    "build": "npm run build:chrome && npm run build:firefox",
+    "build:chrome": "plasmo build --target=chrome-mv3",
+    "build:firefox": "plasmo build --target=firefox-mv2",
     "package": "plasmo package"
   },
   "dependencies": {
@@ -28,10 +30,11 @@
   },
   "manifest": {
     "host_permissions": [
-      "https://*/*"
+      "<all_urls>"
     ],
     "permissions": [
       "storage"
-    ]
+    ],
+    "incognito": "spanning"
   }
-}
+  }
